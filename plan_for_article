@@ -1,0 +1,60 @@
+INTRODUCTION
+
+What motivated me to investigate this: quant firms have been performing poorly recently, conventional wisdom is that certain strategies
+go in and out of fashion over long periods of time (as more investors adopt them, profits are arbitraged away faster)
+
+But this opens up the question: are the successes of particular strategies shared across multiple equities? If no, this would cast doubt
+on the above idea
+
+POTENTIAL PROBLEMS
+
+Largest problem: most of the correlation between success of strategies will be down to the correlation between the price movements
+themselves, this problem is increased by the fact that I filtered out companies with significant missing data, which meant the remaining
+ones tended to be very large, blue-collar, so probably more correlated to market than the small, volatile stocks
+
+To counter this problem, I also measured the correlation between the price movements, and compared these 2 sets of statistics. If strat
+success more correlated than price, this implies that there is some 'shared strategy effect' throughout the stocks, i.e. even though the
+prices move differently, the general strategy of trend following goes in and out of fashion across the whole set of stocks. If strat 
+success less correlated than price, this implies the opposite, i.e. that the only reason that trend following success (or lack thereof) 
+is shared across securities is because of the underlying similarity in their price movements
+
+PROCESS
+
+Stock selection: Quantopian's full ticker set, measure average dollar volume back to 2010, took highest 20%, and then scraped data from
+yahoo finance, using forward fill for data with up to 5 empty cells, and dropping tickers with more than this. Left with ? stocks.
+Rationale for removal: more volatile stocks could have periods of extremely variable returns, where no one strategy wins out over another,
+this could skew results.
+
+Saved this data to a csv file, then created an ABC Strategy with a backtest() function, and created an inheritance class Momentum (as a
+particular type of strategy). Reason for doing this is that I wanted the option to create more strategies, but they could all share the 
+attributes of their parent class Strategy, most crucially the backtest() function.
+
+Momentum took inputs ticker_list, short_window, long_window. Brief explanation of how momentum strategy worked + why I chose to use it, 
+and why the exact parameters didn't matter. Momentum had a method trading_signals (explanation of how this worked, i.e. long and short).
+
+backtest() used trading_signals to generate DataFrame of non-compounded returns: assumed 1 dollar per day (why this made more sense?),
+could then generate matrix of pairwise correlation coefficients between each of the stocks. Removed 1s, and plotted against each other, 
+also calculated mean
+
+RESULTS
+
+means were very similar, indicating very little 'shared strategy effect'. Analyse graph, pick out outliers and patterns
+
+APPLICATIONS
+
+potential applications: the most interesting potential application of this would have been if strategies were much more highly 
+correlated than prices, because this would mean that, if the average success of strategies had some modellable distribution, it would
+be possible to predict which strategies would be successful in the future. talk briefly about the ways that portfolios can adjust
+strategies if they are less successful, but this requires losing an amount before a position is scaled back, so is less than optimal.
+Unfortunately, these were not the findings. it used to be the case that the generation of a new strategy gave it stellar returns, 
+followed by a period of very poor (or even negative returns) as investors flocked to it, but these days there is so much competition 
+and free flowing of information that this is rarely the case with strategies. Competitive advantage is generally found in novel data 
+sources, and creative ways of implementing already established strategies, rather than the strategies themselves.
+
+However, these findings could still be of practical importance to the investor: 
+
+FURTHER INVESTIGATION
+
+use more strategies, investigate over different asset classes. the method I used was effective to get a general idea of certain
+patterns, but to draw any hard, statistically verifiable solutions, we would need to significantly alter the process. this was more of
+an investigative piece.
