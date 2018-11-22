@@ -38,7 +38,14 @@ coefficient). Randomised 1000, and plotted against each other also calculated me
 
 RESULTS
 
-means were very similar, indicating very little 'shared strategy effect'. Analyse graph, pick out outliers and patterns
+means were very similar, indicating very little 'shared strategy effect'. Almost all the pairs lay along the line
+
+0.003874 was average value of returns corr - price corr. Given the high number of pairs this seems statistically significant, but
+it would be dangerous to put too much faith in this because the outliers had such a significant impact on the results.
+
+87.17% of pairs were within 0.01 of each other, and 99.42% within 0.05 of each other
+
+the extreme outliers are very interesting. of all the points with absolute difference > 0.1 (1429) 767 (54%) were due to UBS (larger outlying pattern), and 643 (45%) were due to NYX (smaller outlying pattern). these both largely lay above the line, suggesting a higher returns correlation than prices correlation, in other words
 
 APPLICATIONS
 
