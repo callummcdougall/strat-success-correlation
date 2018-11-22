@@ -33,8 +33,8 @@ Momentum took inputs ticker_list, short_window, long_window. Brief explanation o
 and why the exact parameters didn't matter. Momentum had a method trading_signals (explanation of how this worked, i.e. long and short).
 
 backtest() used trading_signals to generate DataFrame of non-compounded returns: assumed 1 dollar per day (why this made more sense?),
-could then generate matrix of pairwise correlation coefficients between each of the stocks. Removed 1s, and plotted against each other, 
-also calculated mean
+could then generate matrix of pairwise correlation coefficients between each of the stocks (describe maths behind correlation
+coefficient). Randomised 1000, and plotted against each other also calculated mean
 
 RESULTS
 
