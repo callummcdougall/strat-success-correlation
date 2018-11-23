@@ -1,40 +1,66 @@
 INTRODUCTION
 
-What motivated me to investigate this: quant firms have been performing poorly recently, conventional wisdom is that certain strategies
-go in and out of fashion over long periods of time (as more investors adopt them, profits are arbitraged away faster)
-
-But this opens up the question: are the successes of particular strategies shared across multiple equities? If no, this would cast doubt
-on the above idea
+I was motivated to investigate the question of whether certain strategies share patterns of strong and weak performance over groups of
+securities by the fact that quant hedge funds have (as of the writing of this article) been performing quite poorly, with many of the
+largest and oldest funds making very small or even negative gains during 2018. Conventional wisdom in this area is that certain
+strategies used by quantitative investors go in and out of fashion over long periods of time (if a strategy is successful in generating
+alpha, more investors will adopt them, and this alpha is arbitraged away until the strategy becomes unprofitable, investors leave it
+and the process repeats). This opens up the question: are the patterns of success of particular strategies shared across multiple 
+equities? If the answer is no, this would cast doubt on the above idea, and suggest that the 'traditional model' used by investors is 
+somewhat out of date. To investigate this, I decided to test a simple momentum strategy on a list of equities, calculate the pairwise
+correlation of returns, and investigate this data to see if there is a cross-equity relationship in the success of this strategy.
 
 POTENTIAL PROBLEMS
 
-Largest problem: most of the correlation between success of strategies will be down to the correlation between the price movements
-themselves, this problem is increased by the fact that I filtered out companies with significant missing data, which meant the remaining
-ones tended to be very large, blue-collar, so probably more correlated to market than the small, volatile stocks
+The largest potential problem I faced was that most of the correlation between success of strategies will be down to the correlation 
+between the price movements themselves, this problem is made worse by the fact that I filtered out companies with significant missing 
+data, which meant the remaining ones tended to be very large, blue-collar, so probably more correlated to market than the small, 
+volatile stocks. To counter this problem, I also measured the correlation between the price movements, and compared these 2 sets of 
+statistics. If strategy success is more correlated than price, this implies that there is some 'shared strategy effect' throughout the 
+stocks, i.e. even though the prices move differently, the general momentum strategy moves in and out of profitability across the whole 
+set of stocks. If strategy success is not more correlated than price, this implies the opposite, i.e. that the only reason that strategy 
+success (or lack thereof) is shared across securities is because of the underlying similarity in their price movements.
 
-To counter this problem, I also measured the correlation between the price movements, and compared these 2 sets of statistics. If strat
-success more correlated than price, this implies that there is some 'shared strategy effect' throughout the stocks, i.e. even though the
-prices move differently, the general strategy of trend following goes in and out of fashion across the whole set of stocks. If strat 
-success less correlated than price, this implies the opposite, i.e. that the only reason that trend following success (or lack thereof) 
-is shared across securities is because of the underlying similarity in their price movements
+Another potential problem with my methodology is that strategies like momentum generally don't work in the way I have implemented them.
+They tend to look across the whole universe of securities and choose the ones for which the strongest alpha signal is generated, but in
+each implementation, my strategy traded on one single security at a time, not comparing the signal strength across multiple securities.
+This is a difficult problem to get around, however I am doubtful that it will have a huge impact on the overall results, since many 
+automated trading algorithms apply equal weightings to all securities that have positive expected returns, rather than more weight to
+the securities with the strongest signals.
 
 PROCESS
 
-Stock selection: Quantopian's full ticker set, measure average dollar volume back to 2010, took highest 20%, and then scraped data from
-yahoo finance, using forward fill for data with up to 5 empty cells, and dropping tickers with more than this. Left with ? stocks.
-Rationale for removal: more volatile stocks could have periods of extremely variable returns, where no one strategy wins out over another,
-this could skew results.
+The first step was to choose which securities to include in my model. I didn't want to include small, volatile stocks, because these
+could have periods of extremely variable returns, where no one strategy wins out over another over any significant period of time, and
+this could skew results, hiding otherwise interesting patterns. Therefore, I decided on the following methodology for stock selection:
+I took Quantopian's full ticker set, measured average dollar volume back to 2010 and took the highest 20%, then scraped the relevant 
+data from Yahoo Finance (for years 2010-2015). I used forward fill for any data with up to 5 empty cells, and dropped tickers with more
+empty cells than this. I was left with 797 tickers. These were largely a combination of companies (e.g. MSFT) and ETFs (e.g. SPY). I 
+saved this data to a csv file.
 
-Saved this data to a csv file, then created an ABC Strategy with a backtest() function, and created an inheritance class Momentum (as a
-particular type of strategy). Reason for doing this is that I wanted the option to create more strategies, but they could all share the 
-attributes of their parent class Strategy, most crucially the backtest() function.
+For the testing process, I created an abstract base class Strategy with a backtest() function, and created an inheritance class Momentum
+(as a particular type of strategy). My reason for doing this is that I wanted the option to create more strategies, but I still wanted
+them to share the attributes and functions of their parent class Strategy, most crucially the backtest() function.
 
-Momentum took inputs ticker_list, short_window, long_window. Brief explanation of how momentum strategy worked + why I chose to use it, 
-and why the exact parameters didn't matter. Momentum had a method trading_signals (explanation of how this worked, i.e. long and short).
+In implementation, the Momentum class took inputs ticker_list, short_window, long_window. The principle of this strategy was very
+simple: I measured the short and long moving averages of the adjusted closing price, and went long on the security if the SMA was higher
+than the LMA (because this indicated that the price had recently started climbing faster than the security's long-term trend), and went
+short if the SMA was lower. I chose this strategy because it is one of the oldest quantitative strategies in history, and so any
+patterns of success and failure should be well-established in the market by now. I chose 10 days and 30 days for the short and long
+windows. The exact parameters here didn't really matter, since I wasn't trying to create a successful strategy, merely examine the
+extent to which strategy success was shared. The momentum class had an attribute trading_signals, which returned a 1 if a long position
+was recommended, and a -1 if a short was recommended.
 
-backtest() used trading_signals to generate DataFrame of non-compounded returns: assumed 1 dollar per day (why this made more sense?),
-could then generate matrix of pairwise correlation coefficients between each of the stocks (describe maths behind correlation
-coefficient). Randomised 1000, and plotted against each other also calculated mean
+The function backtest() then used trading_signals to generate a DataFrame of non-compounded returns, by assuming the investor had 1
+dollar available per day, and calculating his revenue after opening his position on the day he received the signal, and closing it on
+the next day. This made more sense than allowing returns to compound, because the latter would have given much more weight to later 
+dates if the strategy was successful (because a 1% gain in the price of the stock would have resulted in a much larger actual gain for
+the investor if his strategy had already grown his intial invested amound significantly). I could then generate a matrix of pairwise 
+Pearson Correlation Coefficients between each of the stock pairs (with the two different stocks as the two different data sets, and the
+non-compounded returns on each trading day was a data point). I then removed the repeats from the correlation matrix, as well as the
+correlations between a security and itself. Finally, I calculated the average correlation between returns and between prices across all
+pairs of securities, and made two plots: a scatter plot of returns correlation vs prices correlation, and a histogram showing the
+distribution of differences between the two. Both these plots are in seperate files in this repository.
 
 RESULTS
 
@@ -45,7 +71,14 @@ it would be dangerous to put too much faith in this because the outliers had suc
 
 87.17% of pairs were within 0.01 of each other, and 99.42% within 0.05 of each other
 
-the extreme outliers are very interesting. of all the points with absolute difference > 0.1 (1429) 767 (54%) were due to UBS (larger outlying pattern), and 643 (45%) were due to NYX (smaller outlying pattern). these both largely lay above the line, suggesting a higher returns correlation than prices correlation, in other words
+the extreme outliers are very interesting. of all the points with absolute difference > 0.1 (1429) 767 (54%) were due to UBS (larger 
+outlying pattern), and 643 (45%) were due to NYX (smaller outlying pattern). these both largely lay above the line, suggesting a higher 
+returns correlation than prices correlation, in other words the momentum strategy was successful and unsuccessful at similar times for
+these securities when compared to others, even when their prices were not similar. this is a very interesting phenomenon, but is only
+based on two anomalous securities, furthermore, since many securities are strongly correlated to each other (and the market), it might
+only take this effect occuring once for it to take this form on the graph (they are both large financial services companies, high 
+betas), as a result I don't believe that there is much that can be said with certainty about these two securities' relationships to the 
+others.
 
 APPLICATIONS
 
@@ -64,4 +97,4 @@ FURTHER INVESTIGATION
 
 use more strategies, investigate over different asset classes. the method I used was effective to get a general idea of certain
 patterns, but to draw any hard, statistically verifiable solutions, we would need to significantly alter the process. this was more of
-an investigative piece.
+an investigative piece. 
