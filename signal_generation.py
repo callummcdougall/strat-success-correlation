@@ -13,8 +13,7 @@ all_tickers = sorted(list(set(data.columns.get_level_values(0))))
 class Strategy(object):
 
     """
-    this is an ABC for strategies, used so methods can be created which apply to
-    all strategies, like backtest
+    this is an ABC for strategies, used so methods can be created which apply to all strategies, like backtest
     """
 
     def __init__(self, ticker_list):
@@ -63,12 +62,9 @@ class Momentum(Strategy):
 def get_all_returns():
 
     """
-    this implements the Momentum strategy with a 10 day SMA and 30 day LMA on
-    the entire ticker set, gets the correlation coefficient matrix for the
-    prices and the returns, and returns a dictionary with the stock pairs as
-    keys, and a tuple of prices correlation and returns correlation as values
-
-    check how this is ordered, i want it to lie above line, but just by changing order of tickers, not order of rets/price (or is this equivalent)
+    implements the Momentum strategy with a 10 day SMA and 30 day LMA on the entire ticker set, gets the correlation coefficient
+    matrix for the prices and the returns, and returns a dictionary with the stock pairs as keys, and a tuple of prices correlation and 
+    returns correlation as values
     """
 
     m = Momentum(all_tickers, 10, 30)
@@ -84,27 +80,6 @@ def get_all_returns():
         vals = (prices_corr[i[0],i[1]], rets_corr[i[0],i[1]])
         d[key] = vals
 
-    return d
-
-def dict_of_corr_diffs():
-
-    """
-    this uses the get_all_returns() function to plot a histogram of differences
-    between returns and prices for all pairs of stocks
-    """
-
-    diff = {}
-    d = get_all_returns()
-    for i in d:
-        diff[i] = d[i][1] - d[i][0]
-
-    return diff
-
-    
-
-    
-
-    
-            
+    return d      
             
         
