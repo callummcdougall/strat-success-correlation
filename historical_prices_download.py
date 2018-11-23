@@ -55,6 +55,3 @@ for ticker in tickers:
 		data = data.drop(ticker, axis=1)
 
 data.to_csv(r"C:/_CALLUM/Algorithmic Trading/Backtester/Basic for-loop/clean_universe_stock_data.csv")
-m_index = pd.MultiIndex.from_product((tickers, attr), names=("tickers", "attr"))
-data.columns = m_index
-data = data.iloc[2:]
